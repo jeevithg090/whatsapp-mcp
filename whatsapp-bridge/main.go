@@ -56,7 +56,7 @@ func main() {
 		os.Exit(2)
 	}
 	if err := run(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "\nwhatsapp-bridge: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whatsapp-bridge: %v\n", err)
 		os.Exit(1)
 	}
 }
