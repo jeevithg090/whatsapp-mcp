@@ -1,20 +1,25 @@
 # Convenience targets for local development. CI runs the same commands.
-.PHONY: all build run-bridge run-server test test-bridge test-server lint lint-bridge lint-server fmt
+.PHONY: all build run-bridge run-server check test test-bridge test-server lint lint-bridge lint-server fmt
 
 BRIDGE := whatsapp-bridge
 SERVER := whatsapp-mcp-server
 STATICCHECK := honnef.co/go/tools/cmd/staticcheck@v0.8.2
+VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 
 all: lint test build
 
 build:
-	cd $(BRIDGE) && go build -o whatsapp-bridge .
+	cd $(BRIDGE) && go build -ldflags "-X main.version=$(VERSION)" -o whatsapp-bridge .
 
 run-bridge:
 	cd $(BRIDGE) && go run .
 
 run-server:
 	cd $(SERVER) && uv run main.py
+
+# Diagnose the MCP server setup (database, bridge, ffmpeg) without starting it.
+check:
+	cd $(SERVER) && uv run main.py --check
 
 test: test-bridge test-server
 

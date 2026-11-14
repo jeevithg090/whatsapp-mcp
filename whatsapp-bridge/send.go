@@ -90,7 +90,7 @@ func buildMediaMessage(media outgoingMedia, resp whatsmeow.UploadResponse, data 
 // caption when mediaPath is set.
 func sendWhatsAppMessage(ctx context.Context, client *whatsmeow.Client, recipient, message, mediaPath string) error {
 	if !client.IsConnected() {
-		return errors.New("not connected to WhatsApp")
+		return errors.New("the bridge is not connected to WhatsApp right now; check the bridge terminal (it reconnects automatically) and try again")
 	}
 
 	jid, err := parseRecipient(recipient)
