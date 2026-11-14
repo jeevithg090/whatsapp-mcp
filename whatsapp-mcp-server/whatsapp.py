@@ -546,7 +546,10 @@ def _post(path: str, payload: dict[str, Any]) -> tuple[bool, dict[str, Any]]:
         return False, {"message": f"Timed out after {settings.request_timeout:g}s waiting for the WhatsApp bridge"}
     except httpx.HTTPError as exc:
         return False, {
-            "message": f"Could not reach the WhatsApp bridge at {settings.api_base_url} ({exc}). Is it running?"
+            "message": (
+                f"Could not reach the WhatsApp bridge at {settings.api_base_url} ({exc}). "
+                "Is it running? Start it with `go run .` in whatsapp-bridge/, or check WHATSAPP_API_BASE_URL."
+            )
         }
 
     try:
@@ -628,3 +631,34 @@ def download_media(message_id: str, chat_jid: str) -> tuple[bool, str, str | Non
     ok, body = _post("/download", {"message_id": message_id, "chat_jid": chat_jid})
     path = body.get("path") if ok else None
     return ok, str(body.get("message", "Unknown response")), path
+
+
+# Diagnostics
+# --------------------------------------------------------------------------- #
+
+
+def database_stats() -> dict[str, int]:
+    """Return row counts of the message database (no message content)."""
+    with _connect() as conn:
+        chats = conn.execute("SELECT COUNT(*) FROM chats").fetchone()[0]
+        messages = conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
+    return {"chats": int(chats), "messages": int(messages)}
+
+
+def bridge_health() -> dict[str, Any]:
+    """Query the bridge's ``GET /health`` endpoint. Raises :class:`WhatsAppError` on failure."""
+    settings = _settings()
+    try:
+        with _http_client(settings) as client:
+            response = client.get("/health", timeout=min(settings.request_timeout, 5.0))
+    except httpx.HTTPError as exc:
+        raise WhatsAppError(f"not reachable at {settings.api_base_url} ({exc.__class__.__name__})") from exc
+    if response.status_code == 401:
+        raise WhatsAppError("reachable, but it rejected the API key (check WHATSAPP_BRIDGE_API_KEY)")
+    if not response.is_success:
+        raise WhatsAppError(f"reachable, but /health returned HTTP {response.status_code}")
+    try:
+        body = response.json()
+    except ValueError as exc:
+        raise WhatsAppError("reachable, but /health did not return JSON (is this the WhatsApp bridge?)") from exc
+    return body if isinstance(body, dict) else {}
