@@ -28,6 +28,10 @@ func (f *fakeBridge) Download(_ context.Context, _, _ string) (DownloadResult, e
 	return DownloadResult{MediaType: "image", Filename: "x.jpg", Path: "/abs/x.jpg"}, nil
 }
 
+func (f *fakeBridge) Status() BridgeStatus {
+	return BridgeStatus{Connected: true, LoggedIn: true}
+}
+
 func do(t *testing.T, h http.Handler, method, path, body string, headers map[string]string) (*httptest.ResponseRecorder, map[string]any) {
 	t.Helper()
 	req := httptest.NewRequest(method, path, strings.NewReader(body))
@@ -114,7 +118,7 @@ func TestAPIKeyAuth(t *testing.T) {
 
 func TestHealthEndpoint(t *testing.T) {
 	rec, out := do(t, NewAPIHandler(&fakeBridge{}, ""), http.MethodGet, "/api/health", "", nil)
-	if rec.Code != http.StatusOK || out["status"] != "ok" {
+	if rec.Code != http.StatusOK || out["status"] != "ok" || out["connected"] != true || out["logged_in"] != true {
 		t.Errorf("got %d %v", rec.Code, out)
 	}
 }
