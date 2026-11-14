@@ -1,3 +1,37 @@
-*.db
+# Local configuration / secrets
+.env
+.env.*
+!.env.example
 claude_desktop_config.json
+
+# Bridge runtime data: WhatsApp session keys, message history and downloaded media
+whatsapp-bridge/store/
+*.db
+*.db-shm
+*.db-wal
 whatsapp.log
+
+# Go build output
+whatsapp-bridge/whatsapp-bridge
+whatsapp-bridge/whatsapp-client
+*.exe
+*.test
+*.out
+bin/
+
+# Python
+__pycache__/
+*.py[oc]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
