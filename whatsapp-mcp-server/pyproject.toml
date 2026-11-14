@@ -41,4 +41,4 @@ ignore = [
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["main.py", "whatsapp.py", "audio.py", "config.py"]
+files = ["main.py", "whatsapp.py", "audio.py", "config.py", "doctor.py"]
