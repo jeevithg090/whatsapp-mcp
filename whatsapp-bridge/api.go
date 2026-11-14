@@ -18,6 +18,21 @@ const maxRequestBodyBytes = 1 << 20 // 1 MiB
 type Bridge interface {
 	Send(ctx context.Context, recipient, message, mediaPath string) error
 	Download(ctx context.Context, messageID, chatJID string) (DownloadResult, error)
+	Status() BridgeStatus
+}
+
+// BridgeStatus is the WhatsApp connection state reported by GET /api/health.
+type BridgeStatus struct {
+	// Connected is true while the websocket to WhatsApp is open.
+	Connected bool `json:"connected"`
+	// LoggedIn is true when the device is paired and authenticated.
+	LoggedIn bool `json:"logged_in"`
+}
+
+// HealthResponse is the response body of GET /api/health.
+type HealthResponse struct {
+	Status string `json:"status"`
+	BridgeStatus
 }
 
 // SendMessageRequest is the request body of POST /api/send.
@@ -52,7 +67,7 @@ type DownloadMediaResponse struct {
 func NewAPIHandler(b Bridge, apiKey string) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/health", func(w http.ResponseWriter, _ *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]any{"status": "ok"})
+		writeJSON(w, http.StatusOK, HealthResponse{Status: "ok", BridgeStatus: b.Status()})
 	})
 	mux.HandleFunc("/api/send", handleSend(b))
 	mux.HandleFunc("/api/download", handleDownload(b))
