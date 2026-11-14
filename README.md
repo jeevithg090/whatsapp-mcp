@@ -109,7 +109,7 @@ flowchart LR
     wa[("WhatsApp<br/>servers")]
     db[("store/messages.db<br/>chats + messages")]
     session[("store/whatsapp.db<br/>session keys")]
-    media[("store/&lt;chat&gt;/...<br/>downloaded media")]
+    media[("store/{chat}/...<br/>downloaded media")]
 
     client <-->|"MCP over stdio<br/>(JSON-RPC)"| server
     server -->|"SQL reads"| db
